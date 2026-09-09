@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Gelaran Maju",
+      "hasCanvas": false,
+      "bodyTextLen": 345,
+      "bodyTextHash": "b0565c5d801f55f391a3f1260ec640ef78f0d6991fc7f70530e2e66e798f31de",
+      "bodyTextPrefix": "GELARAN MAJU SDN BHD (817785-V) Choose project NO PROJECT YET AS",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Gelaran Maju",
+      "hasCanvas": false,
+      "bodyTextLen": 123,
+      "bodyTextHash": "2219b5123b6b01b72f2a10bfe3360efaf5a24c7a083c1bb083636965b52b3605",
+      "bodyTextPrefix": "GELARAN MAJU SDN BHD (817785-V) Choose project NO PROJECT YET As",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

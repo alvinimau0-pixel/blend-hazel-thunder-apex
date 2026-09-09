@@ -1,0 +1,237 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --font-sans: "IBM Plex Sans", Arial, "Helvetica Neue", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #f3efe6;
+  --color-paper-2: #e8e2d6;
+  --color-sheet: #ffffff;
+  --color-ink: #1c1916;
+  --color-ink-soft: #3f3a34;
+  --color-muted: #6f675d;
+  --color-line: #d3cbbd;
+  --color-line-strong: #b7ae9e;
+  --color-panel: #fbf8f1;
+  --color-panel-2: #efe9dc;
+  --color-stamp: #6e2c22;
+  --color-accent: #2f445a;
+  --color-accent-fg: #f3efe6;
+
+  --color-cell-done: #c8e6c0;
+  --color-cell-done-ink: #14532d;
+  --color-cell-miss: #f3c6b4;
+  --color-cell-miss-ink: #9a3412;
+  --color-cell-risk: #f6e3a1;
+  --color-cell-risk-ink: #854d0e;
+  --color-cell-track: #fbf8f1;
+  --color-cell-track-ink: #1c1916;
+
+  --color-background: #f3efe6;
+  --color-foreground: #1c1916;
+  --color-card: #fbf8f1;
+  --color-card-foreground: #1c1916;
+  --color-primary: #2f445a;
+  --color-primary-foreground: #f3efe6;
+  --color-secondary: #efe9dc;
+  --color-secondary-foreground: #1c1916;
+  --color-muted-foreground: #6f675d;
+  --color-border: #d3cbbd;
+  --color-input: #d3cbbd;
+  --color-ring: #2f445a;
+  --color-destructive: #6e2c22;
+  --color-destructive-foreground: #fbf8f1;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius: 0.75rem;
+
+  --color-gm-navy: #102a43;
+  --color-gm-navy-2: #173a5e;
+  --color-gm-navy-line: #486581;
+  --color-gm-lime: #c8f169;
+  --color-gm-lime-ink: #5f7d19;
+  --color-gm-lime-wash: #eef9d9;
+  --color-gm-mist: #eaf0e7;
+  --color-gm-paper: #f6f8f5;
+  --color-gm-muted: #627d98;
+  --color-gm-line: #d9e2ec;
+  --color-gm-ok: #1f7a54;
+  --color-gm-bad: #b42318;
+  --font-gm-display: "Fraunces", "Barlow Condensed", Georgia, serif;
+  --font-gm-sans: "DM Sans", "IBM Plex Sans", Arial, sans-serif;
+
+  --shadow-docket:
+    0 0 0 1px color-mix(in oklab, var(--color-ink) 8%, transparent),
+    0 1px 2px color-mix(in oklab, var(--color-ink) 6%, transparent),
+    0 12px 28px -16px color-mix(in oklab, var(--color-ink) 28%, transparent);
+  --shadow-sticky: 0 10px 28px -20px color-mix(in oklab, var(--color-ink) 55%, transparent);
+
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --motion-slow: 400ms;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    overscroll-behavior-y: none;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: inherit;
+    }
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.page-enter {
+  animation: rise-in var(--motion-slow) var(--ease-smooth-out) both;
+}
+
+.skel {
+  background-color: var(--color-panel-2);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-panel-2) 0%,
+    var(--color-sheet) 42%,
+    var(--color-panel-2) 84%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.bar-fill {
+  transform-origin: left center;
+  animation: bar-grow var(--motion-slow) var(--ease-smooth-out) both;
+}
+
+@utility chip-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .page-enter,
+  .bar-fill,
+  .skel {
+    animation: none !important;
+  }
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
+  body {
+    background: white !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-sheet {
+    box-shadow: none !important;
+    background: white !important;
+    border-radius: 0 !important;
+  }
+}
+
+@utility writing-mode-vertical-rl {
+  writing-mode: vertical-rl;
+}
+
+@utility form-gm {
+  width: 100%;
+  border: 1px solid var(--color-gm-line);
+  border-radius: 0.7rem;
+  background: #ffffff;
+  color: var(--color-gm-navy);
+  padding: 0.72rem 0.85rem;
+}
+.form-gm:focus {
+  outline: none;
+  border-color: var(--color-gm-lime-ink);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-gm-lime) 55%, transparent);
+}

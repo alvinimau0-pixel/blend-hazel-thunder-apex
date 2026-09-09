@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Gelaran Maju",
+      "hasCanvas": false,
+      "bodyTextLen": 4250,
+      "bodyTextHash": "49ca9eb2dbf6909cd749b4b0a08b7f364e54857dbae4f8f5ce20f374640ed2db",
+      "bodyTextPrefix": "GELARAN MAJU SDN BHD (817785-V) Choose project The Capitol AS OF",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/today-dev.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Gelaran Maju",
+      "hasCanvas": false,
+      "bodyTextLen": 4131,
+      "bodyTextHash": "15adec78fd09cb38b21fa14be35c2fc96f25029c7c92a5954f722a329a77680d",
+      "bodyTextPrefix": "GELARAN MAJU SDN BHD (817785-V) Choose project The Capitol 28 AU",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/today-dev-mobile.png"
+    }
+  },
+  "brandWarnings": [
+    "BRAND NOTE: no custom public/og.jpg — the platform will serve the og.grok.me placeholder. Custom cards are the default for games of every kind (DOM board/word games included), whimsical apps, creative tools, and brand-forward pages — only plain utilities (converters, CRUD trackers, admin dashboards) keep the placeholder. If this app is not a plain utility, finish the brand-asset pass per /workspace/.grok/skills/og/SKILL.md."
+  ],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/today-dev.json"
+}

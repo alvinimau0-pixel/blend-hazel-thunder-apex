@@ -1,0 +1,270 @@
+import { a as formatStamp, c as monthTitle, d as weekPeriod, i as formatPeriod, l as prevMonthIso, o as getSql, r as dayOfMonth, s as mondayOf, t as addDaysIso, u as todayIso } from "./utils-DyetTdWh.mjs";
+import { i as REPORT_DATE } from "./company-BVHhciP6.mjs";
+import { C as mean, D as roundPct, m as TRADE_WEIGHT } from "./domain-B9hSVQhA.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/day-roll-CIcXIhhj.js
+function toBool(v) {
+	return v === true || v === "t" || v === "true" || v === 1 || v === "1";
+}
+function isoDay(v) {
+	if (v instanceof Date && !Number.isNaN(v.getTime())) return v.toISOString().slice(0, 10);
+	return String(v ?? "").match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? "";
+}
+async function liveLock(sql) {
+	try {
+		const rows = await sql`
+      select i.trade, p.pct, p.na
+      from msk_progress p
+      join msk_items i on i.id = p.item_id
+    `;
+		const byTrade = {
+			CW: [],
+			SAN: [],
+			IRR: []
+		};
+		for (const r of rows) {
+			if (toBool(r.na)) continue;
+			const t = r.trade;
+			if (byTrade[t]) byTrade[t].push(Number(r.pct));
+		}
+		const cw = mean(byTrade.CW);
+		const san = mean(byTrade.SAN);
+		const irr = mean(byTrade.IRR);
+		const weightSum = TRADE_WEIGHT.CW + TRADE_WEIGHT.SAN + TRADE_WEIGHT.IRR;
+		return {
+			lock: roundPct((cw * TRADE_WEIGHT.CW + san * TRADE_WEIGHT.SAN + irr * TRADE_WEIGHT.IRR) / weightSum),
+			cw: roundPct(cw),
+			san: roundPct(san),
+			irr: roundPct(irr)
+		};
+	} catch {
+		return {
+			lock: 0,
+			cw: 0,
+			san: 0,
+			irr: 0
+		};
+	}
+}
+async function crewBlurb(sql, dated) {
+	try {
+		const rows = await sql`
+      select c.callsign, c.contractor, l.code as level, a.tower, i.short_name as short,
+             a.start_pct, a.claimed_pct, a.verified
+      from msk_assignments a
+      join crew c on c.id = a.crew_id
+      join msk_levels l on l.id = a.level_id
+      join msk_items i on i.id = a.item_id
+      where a.work_date = ${dated}::date
+      order by c.callsign
+    `;
+		if (rows.length === 0) return "No MSK tickets today.";
+		return rows.map((r) => {
+			const claimed = r.claimed_pct == null ? "assigned" : `${r.claimed_pct}%`;
+			const waiting = r.contractor === "SUB" && !toBool(r.verified) && r.claimed_pct != null ? " waiting check" : "";
+			return `${r.callsign} ${r.level} T${r.tower} ${r.short} ${r.start_pct}% → ${claimed}${waiting}`;
+		}).join(". ");
+	} catch {
+		return "Crew list not ready.";
+	}
+}
+async function rollToilet(sql, dated) {
+	const [src] = await sql`
+    select max(work_date)::text as d from assignments where work_date < ${dated}::date
+  `;
+	const from = isoDay(src?.d);
+	if (!from) return 0;
+	const rows = await sql`
+    select crew_id, floor_id, toilet_id, activity_id, start_pct, claimed_pct, note, verified, rejected
+    from assignments
+    where work_date = ${from}::date
+  `;
+	let n = 0;
+	for (const a of rows) {
+		if (toBool(a.rejected)) continue;
+		if (a.claimed_pct != null && Number(a.claimed_pct) >= 100) continue;
+		const [exists] = await sql`
+      select id from assignments
+      where work_date = ${dated}::date
+        and crew_id = ${a.crew_id}
+        and floor_id = ${a.floor_id}
+        and toilet_id = ${a.toilet_id}
+        and activity_id = ${a.activity_id}
+      limit 1
+    `;
+		if (exists) continue;
+		const [board] = await sql`
+      select pct from progress
+      where floor_id = ${a.floor_id} and toilet_id = ${a.toilet_id} and activity_id = ${a.activity_id}
+    `;
+		const start = board ? Number(board.pct) : Number(a.start_pct);
+		if (start >= 100) continue;
+		const [crew] = await sql`select contractor from crew where id = ${a.crew_id}`;
+		const claimed = crew?.contractor === "SUB" && a.claimed_pct != null && !toBool(a.verified) && Number(a.claimed_pct) !== start ? Number(a.claimed_pct) : a.claimed_pct == null ? null : start;
+		await sql`
+      insert into assignments (
+        work_date, crew_id, floor_id, toilet_id, activity_id,
+        start_pct, claimed_pct, note, photo_data, verified, rejected
+      ) values (
+        ${dated}::date, ${a.crew_id}, ${a.floor_id}, ${a.toilet_id}, ${a.activity_id},
+        ${start}, ${claimed}, ${a.note}, ${null}, ${false}, ${false}
+      )
+    `;
+		n += 1;
+	}
+	return n;
+}
+async function rollMsk(sql, dated) {
+	const [src] = await sql`
+    select max(work_date)::text as d from msk_assignments where work_date < ${dated}::date
+  `;
+	const from = isoDay(src?.d);
+	if (!from) return 0;
+	const rows = await sql`
+    select crew_id, level_id, tower, item_id, start_pct, claimed_pct, note, verified, rejected
+    from msk_assignments
+    where work_date = ${from}::date
+  `;
+	let n = 0;
+	for (const a of rows) {
+		if (toBool(a.rejected)) continue;
+		if (a.claimed_pct != null && Number(a.claimed_pct) >= 100) continue;
+		const [exists] = await sql`
+      select id from msk_assignments
+      where work_date = ${dated}::date
+        and crew_id = ${a.crew_id}
+        and level_id = ${a.level_id}
+        and tower = ${a.tower}
+        and item_id = ${a.item_id}
+      limit 1
+    `;
+		if (exists) continue;
+		const [board] = await sql`
+      select pct, na from msk_progress
+      where level_id = ${a.level_id} and tower = ${a.tower} and item_id = ${a.item_id}
+    `;
+		if (board && toBool(board.na)) continue;
+		const start = board ? Number(board.pct) : Number(a.start_pct);
+		if (start >= 100) continue;
+		const [crew] = await sql`select contractor from crew where id = ${a.crew_id}`;
+		const claimed = crew?.contractor === "SUB" && a.claimed_pct != null && !toBool(a.verified) && Number(a.claimed_pct) !== start ? Number(a.claimed_pct) : a.claimed_pct == null ? null : start;
+		await sql`
+      insert into msk_assignments (
+        work_date, crew_id, level_id, tower, item_id,
+        start_pct, claimed_pct, note, photo_data, verified, rejected
+      ) values (
+        ${dated}::date, ${a.crew_id}, ${a.level_id}, ${a.tower}, ${a.item_id},
+        ${start}, ${claimed}, ${a.note}, ${null}, ${false}, ${false}
+      )
+    `;
+		n += 1;
+	}
+	if (n > 0) await sql`
+      insert into audit_log (kind, floor_code, toilet_code, activity_seq, from_pct, to_pct, crew_callsign, note)
+      values (
+        ${"assign"},
+        ${"MSK"},
+        ${"TA"},
+        ${0},
+        ${0},
+        ${0},
+        ${"SHEET"},
+        ${`Unfinished tickets carried ${formatStamp(from)} → ${formatStamp(dated)}`}
+      )
+    `;
+	return n;
+}
+async function upsertReport(sql, pid, cadence, period, dated, lock, summary, status, force) {
+	const row = (cadence === "daily" ? await sql`
+        select id, status from ops_reports
+        where project_id = ${pid} and cadence = ${cadence} and dated = ${dated}
+        limit 1
+      ` : await sql`
+        select id, status from ops_reports
+        where project_id = ${pid} and cadence = ${cadence} and period = ${period}
+        order by id desc
+        limit 1
+      `)[0];
+	if (row && !force) return false;
+	if (row) {
+		await sql`
+      update ops_reports
+      set dated = ${dated}, lock_pct = ${lock}, summary = ${summary}, status = ${status}
+      where id = ${row.id}
+    `;
+		return true;
+	}
+	await sql`
+    insert into ops_reports (project_id, cadence, period, dated, lock_pct, summary, status, prepared_by)
+    values (${pid}, ${cadence}, ${period}, ${dated}, ${lock}, ${summary}, ${status}, ${"Alvin"})
+  `;
+	return true;
+}
+async function publishReports(sql, dated, force) {
+	const [capitol] = await sql`select id from ops_projects where code = ${"capitol"}`;
+	if (!capitol) return {
+		daily: false,
+		weekly: false,
+		monthly: false,
+		lock: 0
+	};
+	const pid = capitol.id;
+	const trades = await liveLock(sql);
+	const crew = await crewBlurb(sql, dated);
+	const sheet = formatPeriod(REPORT_DATE);
+	const dailySummary = `Auto-published ${formatPeriod(dated)}. Last official MSK sheet ${sheet}. Lock ${trades.lock}% (CW ${trades.cw} / SAN ${trades.san} / IRR ${trades.irr}). ${crew}`;
+	const week = weekPeriod(dated);
+	const weekStart = mondayOf(dated);
+	const weekEnd = addDaysIso(weekStart, 6);
+	const weeklySummary = `Week ${formatPeriod(weekStart)} to ${formatPeriod(weekEnd)}. Live lock ${trades.lock}%. Last official sheet ${sheet}. ${crew}`;
+	const closePrev = dayOfMonth(dated) === 1;
+	const monthIso = closePrev ? prevMonthIso(dated) : dated;
+	const month = monthTitle(monthIso);
+	const monthStatus = closePrev ? "issued" : "draft";
+	const monthlySummary = closePrev ? `${month} close on ${formatPeriod(dated)}. Tower lock ${trades.lock}%. Last official sheet ${sheet}. PC36 certified. PC37 draft for Jenny.` : `${month} in progress. Live lock ${trades.lock}%. Last official sheet ${sheet}.`;
+	return {
+		daily: await upsertReport(sql, pid, "daily", formatPeriod(dated), dated, trades.lock, dailySummary, "issued", force),
+		weekly: await upsertReport(sql, pid, "weekly", week, dated, trades.lock, weeklySummary, "issued", force),
+		monthly: await upsertReport(sql, pid, "monthly", month, dated, trades.lock, monthlySummary, monthStatus, force),
+		lock: trades.lock
+	};
+}
+var rolledDates = /* @__PURE__ */ new Set();
+async function ensureToday(dated = todayIso(), force = false) {
+	if (!force && rolledDates.has(dated)) return {
+		dated,
+		lock: 0,
+		rolled: 0,
+		daily: false,
+		weekly: false,
+		monthly: false
+	};
+	if (!force) rolledDates.add(dated);
+	const sql = await getSql();
+	let rolled = 0;
+	try {
+		rolled += await rollMsk(sql, dated);
+	} catch {}
+	try {
+		rolled += await rollToilet(sql, dated);
+	} catch {}
+	let published = {
+		daily: false,
+		weekly: false,
+		monthly: false,
+		lock: 0
+	};
+	try {
+		published = await publishReports(sql, dated, force);
+	} catch {}
+	if (force) rolledDates.add(dated);
+	return {
+		dated,
+		lock: published.lock,
+		rolled,
+		daily: published.daily,
+		weekly: published.weekly,
+		monthly: published.monthly
+	};
+}
+//#endregion
+export { ensureToday };

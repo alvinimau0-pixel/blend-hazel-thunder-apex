@@ -1,0 +1,1 @@
+import{J as e,K as t,m as n}from"./index-BUAxBFkE.js";function r(r,i){let a=e(),o=t({select:e=>e.location.hash}),s=n(o,r,i);function c(e){a({to:`.`,hash:e,replace:!0})}return[s,c]}export{r as t};
